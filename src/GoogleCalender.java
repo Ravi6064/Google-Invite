@@ -1,3 +1,5 @@
+import java.net.SocketException;
+import java.net.URI;
 import java.util.Date;
 import java.util.Properties;
 
@@ -15,100 +17,121 @@ import javax.mail.internet.MimeMultipart;
 import net.fortuna.ical4j.model.Calendar;
 import net.fortuna.ical4j.model.DateTime;
 import net.fortuna.ical4j.model.component.VEvent;
+import net.fortuna.ical4j.model.parameter.Cn;
+import net.fortuna.ical4j.model.parameter.PartStat;
+import net.fortuna.ical4j.model.parameter.Role;
+import net.fortuna.ical4j.model.property.Attendee;
 import net.fortuna.ical4j.model.property.Clazz;
+import net.fortuna.ical4j.model.property.Method;
 import net.fortuna.ical4j.model.property.Priority;
+import net.fortuna.ical4j.model.property.Uid;
 import net.fortuna.ical4j.model.property.Version;
+import net.fortuna.ical4j.util.CompatibilityHints;
+import net.fortuna.ical4j.util.FixedUidGenerator;
+import net.fortuna.ical4j.util.UidGenerator;
 
 public class GoogleCalender {
 
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
-		
-		new GoogleCalender().sendEmail("test@gmail.com", "drk6064@gmail.com", "sub", "text", new GoogleCalender().getInvite());
+		Session session = Session.getDefaultInstance(new GoogleCalender().getMailProperties(),
+				new javax.mail.Authenticator() {
+					protected PasswordAuthentication getPasswordAuthentication() {
+						return new PasswordAuthentication("drk6064@gmail.com", "rAMUDU@123");
+					}
+				});
+
+		new GoogleCalender().sendEmail("drk6064@gmail.com", "ravikiran.daggupati@airtel.com", "sub", "text",
+				new GoogleCalender().getInvite(session), session);
 
 	}
-	
+
 	private Calendar getInvite(Session session) {
-	    Calendar calendar = new Calendar();
-	    calendar.getProperties().add(Version.VERSION_2_0);
-	    calendar.getProperties().add(Method.REQUEST);
+		CompatibilityHints.setHintEnabled(CompatibilityHints.KEY_OUTLOOK_COMPATIBILITY, true);
+		CompatibilityHints.setHintEnabled(CompatibilityHints.KEY_NOTES_COMPATIBILITY, true);
 
-	    VEvent event = new VEvent(
-	        new DateTime(sesion.getStartDate()), 
-	        new DateTime(sesion.getEndDate()), 
-	        session.getName());
+		Calendar calendar = new Calendar();
+		calendar.getProperties().add(Version.VERSION_2_0);
+		calendar.getProperties().add(Method.REQUEST);
 
-	    event.getProperties().add(Priority.MEDIUM);
-	    event.getProperties().add(Clazz.PUBLIC);
+		VEvent event = new VEvent(new DateTime(new Date()), new DateTime(new Date().getTime()+1000000000), "Test");
 
-	    try {
-	        UidGenerator ug = new UidGenerator("uidGen");
-	        Uid uid = ug.generateUid();
-	        event.getProperties().add(uid);
-	    } catch (SocketException e) {
-	        // Log things
-	    }
+		event.getProperties().add(Priority.MEDIUM);
+		event.getProperties().add(Clazz.PUBLIC);
 
-	    for (Participant participant : session.getParticipants()) {
-	        Attendee attendee = new Attendee(URI.create("mailto:" + participant.getEmail()));
-	        attendee.getParameters().add(Role.OPT_PARTICIPANT);
-	        attendee.getParameters().add(new Cn(participant.getName()));
-	        attendee.getParameters().add(PartStat.NEEDS_ACTION);
-	        event.getProperties().add(attendee);
-	    }
+		try {
+			UidGenerator ug = new FixedUidGenerator("uidGen");
+			Uid uid = ug.generateUid();
+			event.getProperties().add(uid);
+		} catch (SocketException e) { // Log things }
+		}
+		
+		Attendee attendee = new Attendee(URI.create("mailto:" + "drk6064@gmail.com"));
+		attendee.getParameters().add(Role.OPT_PARTICIPANT);
+		attendee.getParameters().add(new Cn("Ravikiran"));
+		attendee.getParameters().add(PartStat.NEEDS_ACTION);
+		event.getProperties().add(attendee);
 
-	    calendar.getComponents().add(event);
+		calendar.getComponents().add(event);
 
-	    return calendar;
-
-	}	
-
-	public void sendEmail(String fromMail, String toMail, String subject, String text, net.fortuna.ical4j.model.Calendar calendar) {
-	    try {
-	        Session session = Session.getInstance(getMailProperties(), new javax.mail.Authenticator() {
-	            protected PasswordAuthentication getPasswordAuthentication() {
-	                return new PasswordAuthentication(getUser(), getPassword());
-	            }
-	        });
-
-	        MimeMessage mimeMessage = new MimeMessage(session);
-	        mimeMessage.setHeader("Content-Transfer-Encoding:", "7bit");
-
-	        Address address = new InternetAddress(fromMail);
-	        mimeMessage.setFrom(address);
-
-	        mimeMessage.setSentDate(Calendar.getInstance().getTime());
-	        mimeMessage.setRecipients(Message.RecipientType.TO, toMail);
-
-	        mimeMessage.setSubject(subject);
-	        Calendar cal = Calendar.getInstance();
-	        mimeMessage.setSentDate(cal.getTime());
-
-	        Multipart multipart = new MimeMultipart("alternative");
-
-	        // First part - HTML readable text  
-	        MimeBodyPart msgHtml = new MimeBodyPart();
-	        msgHtml.setContent(text, "text/html; charset=UTF-8");
-
-	        multipart.addBodyPart(msgHtml);
-
-	        if (calendar != null) {
-	            // Another part for the calendar invite
-	            MimeBodyPart invite = new MimeBodyPart();
-	            invite.setHeader("Content-Class", "urn:content-  classes:calendarmessage");
-	            invite.setHeader("Content-ID", "calendar_message");
-	            invite.setHeader("Content-Disposition", "inline");
-	            invite.setContent(calendar.toString(), "text/calendar");
-	            multipart.addBodyPart(invite);
-	        }
-
-	        mimeMessage.setContent(multipart);
-
-	        Transport.send(mimeMessage);
-
-	    } catch (Exception e) {
-	        // Log things
-	    }
+		return calendar;
 
 	}
+
+	public void sendEmail(String fromMail, String toMail, String subject, String text,
+			net.fortuna.ical4j.model.Calendar calendar, Session session) {
+		try {
+			MimeMessage mimeMessage = new MimeMessage(session);
+			mimeMessage.setHeader("Content-Transfer-Encoding:", "7bit");
+
+			Address address = new InternetAddress(fromMail);
+			mimeMessage.setFrom(address);
+
+			mimeMessage.setSentDate(new Date());
+			mimeMessage.setRecipients(Message.RecipientType.TO, toMail);
+
+			mimeMessage.setSubject(subject);
+			java.util.Calendar cal = java.util.Calendar.getInstance();
+			mimeMessage.setSentDate(cal.getTime());
+
+			Multipart multipart = new MimeMultipart("alternative");
+
+			// First part - HTML readable text
+			MimeBodyPart msgHtml = new MimeBodyPart();
+			msgHtml.setContent(text, "text/html; charset=UTF-8");
+
+			multipart.addBodyPart(msgHtml);
+
+			if (calendar != null) {
+				// Another part for the calendar invite
+				MimeBodyPart invite = new MimeBodyPart();
+				invite.setHeader("Content-Class", "urn:content-  classes:calendarmessage");
+				invite.setHeader("Content-ID", "calendar_message");
+				invite.setHeader("Content-Disposition", "inline");
+				invite.setContent(calendar.toString(), "text/calendar");
+				multipart.addBodyPart(invite);
+			}
+
+			mimeMessage.setContent(multipart);
+
+			Transport.send(mimeMessage);
+
+		} catch (Exception e) {
+			// Log things
+			e.printStackTrace();
+		}
+
+	}
+
+	private Properties getMailProperties() {
+		// Get the session object
+		Properties props = new Properties();
+		props.put("mail.smtp.host", "smtp.gmail.com");
+		props.put("mail.smtp.port", "587");
+		props.put("mail.smtp.auth", "true");
+		props.put("mail.smtp.starttls.enable", "true");
+		props.put("mail.smtp.debug", "true");
+		return props;
+	}
+
 }

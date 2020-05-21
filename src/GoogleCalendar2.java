@@ -18,11 +18,7 @@ import net.fortuna.ical4j.data.CalendarOutputter;
 import net.fortuna.ical4j.model.Calendar;
 import net.fortuna.ical4j.model.Date;
 import net.fortuna.ical4j.model.DateTime;
-import net.fortuna.ical4j.model.TimeZone;
-import net.fortuna.ical4j.model.TimeZoneRegistry;
-import net.fortuna.ical4j.model.TimeZoneRegistryFactory;
 import net.fortuna.ical4j.model.component.VEvent;
-import net.fortuna.ical4j.model.component.VTimeZone;
 import net.fortuna.ical4j.model.property.Attendee;
 import net.fortuna.ical4j.model.property.CalScale;
 import net.fortuna.ical4j.model.property.Description;
@@ -40,12 +36,18 @@ public class GoogleCalendar2 {
 
 	public static void main(String[] args) throws Exception {
 		// TODO Auto-generated method stub
-		Session session = Session.getInstance(new GoogleCalendar2().getMailProperties(), new javax.mail.Authenticator() {
-            protected PasswordAuthentication getPasswordAuthentication() {
-                return new PasswordAuthentication("drk6064@gmail.com","rAMUDU@123");
-            }
-        });
-		
+		Session session = Session.getDefaultInstance(new GoogleCalendar2().getMailProperties(),
+				new javax.mail.Authenticator() {
+					protected PasswordAuthentication getPasswordAuthentication() {
+						return new PasswordAuthentication("drk6064@gmail.com", "rAMUDU@123");
+					}
+				});
+		/*
+		 * Properties properties = new Properties();
+		 * properties.setProperty("mail.smtp.host", "smtp.gmail.com");
+		 * 
+		 * Session session = Session.getDefaultInstance(properties);
+		 */
 		MimeMessage mimeMessage = new GoogleCalendar2().createMimeMessage(session);
 		Transport.send(mimeMessage);
 	}
@@ -53,14 +55,13 @@ public class GoogleCalendar2 {
 	public MimeMessage createMimeMessage(Session session) throws Exception {
 		MimeMessage mimeMessage = new MimeMessage(session);
 		mimeMessage.setSubject("Test Subject");
-		mimeMessage.addFrom(new InternetAddress[]{new InternetAddress("drk6064@gmail.com")});
-		mimeMessage.addRecipients(Message.RecipientType.TO, "drk6064@gmail.com");
+		mimeMessage.addFrom(new InternetAddress[] { new InternetAddress("drk6064@gmail.com") });
+		mimeMessage.addRecipients(Message.RecipientType.TO, "ravikiran.daggupati@airtel.com");
 		// The following two steps of processing is very important, you can avoid
 		// Outlook to generate generated calendar items as attachments
 		Multipart multipart = new MimeMultipart();
 		MimeBodyPart iCalAttachment = new MimeBodyPart();
-		byte[] invite = createICalInvitation("12345", "Test Subject", "testcontent", new Date(), new Date()
-				);
+		byte[] invite = createICalInvitation("12345", "Test Subject", "testcontent", new Date(), new Date());
 		// The handling of
 		/*
 		 * setDataHandler is also very critical If you follow the process directly
@@ -77,8 +78,8 @@ public class GoogleCalendar2 {
 		return mimeMessage;
 	}
 
-	private byte[] createICalInvitation(String _meetingID, String _subject, String _content, Date _start, Date _end
-			) throws Exception {
+	private byte[] createICalInvitation(String _meetingID, String _subject, String _content, Date _start, Date _end)
+			throws Exception {
 		CompatibilityHints.setHintEnabled(CompatibilityHints.KEY_OUTLOOK_COMPATIBILITY, true);
 		CompatibilityHints.setHintEnabled(CompatibilityHints.KEY_NOTES_COMPATIBILITY, true);
 
@@ -96,9 +97,10 @@ public class GoogleCalendar2 {
 		cal.getProperties().add(Version.VERSION_2_0);
 		cal.getProperties().add(CalScale.GREGORIAN);
 		cal.getProperties().add(Method.REQUEST);
-		//TimeZoneRegistry registry = TimeZoneRegistryFactory.getInstance().createRegistry();
-		//VTimeZone tz = registry.getTimeZone(_tz.getID()).getVTimeZone();
-		//cal.getComponents().add(tz);
+		// TimeZoneRegistry registry =
+		// TimeZoneRegistryFactory.getInstance().createRegistry();
+		// VTimeZone tz = registry.getTimeZone(_tz.getID()).getVTimeZone();
+		// cal.getComponents().add(tz);
 		cal.getComponents().add(vEvent);
 
 		// If the mail content of the calendar is garbled, you can consider generating
@@ -113,8 +115,11 @@ public class GoogleCalendar2 {
 	private Properties getMailProperties() {
 		// Get the session object
 		Properties props = new Properties();
-		props.put("mail.smtp.host", "mail.smtp.com");
+		props.put("mail.smtp.host", "smtp.gmail.com");
+		props.put("mail.smtp.port", "587");
 		props.put("mail.smtp.auth", "true");
+		props.put("mail.smtp.starttls.enable","true");
+		props.put("mail.smtp.debug", "true");
 		return props;
 	}
 
