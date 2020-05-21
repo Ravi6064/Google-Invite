@@ -37,6 +37,8 @@ import net.fortuna.ical4j.model.property.Version;
 import net.fortuna.ical4j.util.CompatibilityHints;
 
 public class GoogleCalendar2 {
+	
+	//https://stackoverflow.com/questions/36579482/automatic-mail-sending-with-calendar-invite-in-java
 
 	public static void main(String[] args) throws Exception {
 		// TODO Auto-generated method stub
