@@ -87,8 +87,8 @@ public class GoogleCalendar2 {
 		vEvent.getProperties().add(new Uid(_meetingID));
 		vEvent.getProperties().add(new Summary(_subject));
 		vEvent.getProperties().add(new Description(_content));
-		vEvent.getProperties().add(new DtStart(new DateTime(_start)));
-		vEvent.getProperties().add(new DtEnd(new DateTime(_end)));
+		vEvent.getProperties().add(new DtStart(_start));
+		vEvent.getProperties().add(new DtEnd(_end));
 		vEvent.getProperties().add(new Attendee());
 		vEvent.getProperties().add(new Organizer());
 

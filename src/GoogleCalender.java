@@ -115,6 +115,7 @@ public class GoogleCalender {
 			mimeMessage.setContent(multipart);
 
 			Transport.send(mimeMessage);
+			System.out.println("Emaial Sent");
 
 		} catch (Exception e) {
 			// Log things
